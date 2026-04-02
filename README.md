@@ -49,7 +49,7 @@ Follow the guides in order:
 
 | Component | Details |
 |---|---|
-| Vultr VPS | Cheapest plan ($3.50–6/mo), Debian 13 (Trixie) |
+| Vultr VPS | Cheapest plan, Debian 13 (Trixie) |
 | Raspberry Pi 4B | 4 GB RAM, Raspberry Pi OS Lite (64-bit) |
 | Starlink | Gen 2 router (WiFi only, no Ethernet port) |
 | Hikvision NVR | IP: 192.168.1.64, management port: 8000 |

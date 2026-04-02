@@ -90,18 +90,40 @@ Wait 30 seconds, then SSH back in.
 ## Step 5: Harden SSH
 
 By default, the VPS allows SSH login as root with a password. This is a common
-attack target. We will lock it down.
+attack target — automated bots scan the internet 24/7 trying root passwords. We
+will lock it down by:
 
-### 5a: Create a regular user (so you do not need root for SSH)
+1. Creating a regular (non-root) user
+2. Setting up SSH key authentication for that user
+3. Disabling root login and password authentication entirely
+
+After this step, the only way to log in will be with your SSH key as the
+`wgadmin` user. No password, no root.
+
+### 5a: Create a regular user
 
 ```bash
 adduser wgadmin
 usermod -aG sudo wgadmin
 ```
 
-Enter a strong password when prompted.
+`adduser` will ask you to set a password and fill in some optional info. Set a
+**strong password** (you will need it when running `sudo` commands). The rest
+(Full Name, Room Number, etc.) can be left blank — just press Enter.
 
-If you uploaded an SSH key to Vultr, copy it to the new user:
+`usermod -aG sudo wgadmin` adds the user to the `sudo` group, which allows them
+to run admin commands with `sudo`.
+
+### 5b: Set up SSH key authentication for the new user
+
+There are two scenarios depending on how you deployed the VPS at Vultr.
+
+---
+
+**Scenario A: You uploaded an SSH key to Vultr during deployment**
+
+Vultr already placed your public key in `/root/.ssh/authorized_keys`. Copy it
+to the new user:
 
 ```bash
 mkdir -p /home/wgadmin/.ssh
@@ -111,36 +133,131 @@ chmod 700 /home/wgadmin/.ssh
 chmod 600 /home/wgadmin/.ssh/authorized_keys
 ```
 
-### 5b: Test the new user before locking root
+Skip ahead to **Step 5c**.
 
-Open a **new** terminal window (keep the current one open as a safety net) and
-verify you can log in:
+---
+
+**Scenario B: You deployed without an SSH key (password only)**
+
+You are currently logged in as root using the password from the Vultr dashboard.
+You need to generate an SSH key pair on **your local computer** (not the VPS) and
+upload the public key to the VPS.
+
+**On your local computer** (Linux, Mac, or Windows with Git Bash / PowerShell):
+
+```bash
+# Check if you already have a key
+ls ~/.ssh/id_ed25519.pub
+```
+
+If the file exists, you already have a key — skip the generation step below.
+
+If it does not exist, generate one:
+
+```bash
+ssh-keygen -t ed25519 -C "wgadmin@wg-hub"
+```
+
+It will ask:
+- **File location** — press Enter to accept the default (`~/.ssh/id_ed25519`)
+- **Passphrase** — enter a strong passphrase (recommended) or press Enter for
+  none. The passphrase protects the key if someone steals the file from your
+  computer.
+
+Now display the **public** key:
+
+```bash
+cat ~/.ssh/id_ed25519.pub
+```
+
+You will see one line that starts with `ssh-ed25519 AAAA...`. Copy this entire
+line.
+
+**Back on the VPS** (still logged in as root), paste the public key into the
+new user's authorized_keys:
+
+```bash
+mkdir -p /home/wgadmin/.ssh
+nano /home/wgadmin/.ssh/authorized_keys
+```
+
+Paste the public key line you copied, save, and exit (`Ctrl+X`, then `Y`, then
+Enter).
+
+Set the correct permissions:
+
+```bash
+chown -R wgadmin:wgadmin /home/wgadmin/.ssh
+chmod 700 /home/wgadmin/.ssh
+chmod 600 /home/wgadmin/.ssh/authorized_keys
+```
+
+> **What did we just do?** SSH key authentication works like a lock and key. The
+> **private key** stays on your local computer (in `~/.ssh/id_ed25519`) — never
+> share this file. The **public key** goes on the server (in `authorized_keys`)
+> — it acts like a lock that only your private key can open. When you connect,
+> SSH verifies that your private key matches the public key on the server. No
+> password is sent over the network.
+
+---
+
+### 5c: Test the new user before locking root
+
+This is critical — do NOT skip this step. If the key setup has a problem, you
+could lock yourself out.
+
+Open a **new** terminal window (keep the current root session open as a safety
+net) and try to log in as the new user:
 
 ```bash
 ssh wgadmin@VPS_PUBLIC_IP
-sudo whoami    # should print: root
 ```
 
-If this works, proceed. If not, **do not** lock root — fix the issue first.
+This should log you in **without asking for a password** (or asking only for your
+SSH key passphrase if you set one). If it asks for `wgadmin`'s account password,
+the SSH key is not working — go back to Step 5b and check the file permissions
+and contents.
 
-### 5c: Disable root login and password authentication
+Once logged in, verify sudo works:
+
+```bash
+sudo whoami
+```
+
+It will ask for the `wgadmin` password (the one you set in Step 5a). It should
+print `root`.
+
+> **If this fails:** Do NOT proceed. Debug the issue while you still have the
+> root session open in the other terminal. Common problems:
+> - Wrong permissions on `.ssh/` or `authorized_keys` (must be 700 and 600)
+> - Public key not pasted correctly (must be one single line)
+> - Connecting with a different SSH key than the one you generated
+
+### 5d: Disable root login and password authentication
+
+Now that you have confirmed the `wgadmin` user works with SSH key auth, lock
+everything else down:
 
 ```bash
 sudo nano /etc/ssh/sshd_config
 ```
 
-Find and change (or add) these lines:
+Find and change (or add) these three lines:
 
 ```
 PermitRootLogin no
 PasswordAuthentication no
+PubkeyAuthentication yes
 ```
 
-> **What this does:** No one can SSH as root, and no one can use a password.
-> Only your SSH key will work, and only for the `wgadmin` user. This blocks
-> virtually all automated SSH attacks.
+> **What each line does:**
+> - `PermitRootLogin no` — no one can SSH as root, period.
+> - `PasswordAuthentication no` — passwords are disabled. Only SSH keys work.
+>   This stops all brute-force password attacks.
+> - `PubkeyAuthentication yes` — ensures key-based login is explicitly enabled
+>   (it is the default, but being explicit is safer).
 
-Restart SSH:
+Save and exit, then restart the SSH service:
 
 ```bash
 sudo systemctl restart ssh
@@ -149,18 +266,23 @@ sudo systemctl restart ssh
 > **Debian note:** The SSH service is called `ssh` on Debian (not `sshd` as on
 > some other distributions).
 
-### 5d: Verify (from another terminal)
+### 5e: Verify the lockdown (from another terminal)
 
 ```bash
-# This should fail:
+# This should FAIL (root login disabled):
 ssh root@VPS_PUBLIC_IP
 
-# This should work:
+# This should FAIL (password login disabled):
+ssh -o PubkeyAuthentication=no wgadmin@VPS_PUBLIC_IP
+
+# This should WORK (SSH key login as wgadmin):
 ssh wgadmin@VPS_PUBLIC_IP
 ```
 
-> **From this point on**, use `ssh wgadmin@VPS_PUBLIC_IP` and prefix commands
-> with `sudo` when needed.
+If all three tests pass, SSH is fully hardened.
+
+> **From this point on**, always use `ssh wgadmin@VPS_PUBLIC_IP` and prefix
+> admin commands with `sudo`.
 
 ## Step 6: Install WireGuard
 
