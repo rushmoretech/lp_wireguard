@@ -173,7 +173,7 @@ sudo cat /etc/wireguard/pi_private.key
 ```ini
 [Interface]
 # Raspberry Pi's WireGuard address
-Address = 10.0.0.2/24
+Address = 10.67.0.2/24
 
 # Reduce MTU to prevent fragmentation (WireGuard adds ~60 bytes overhead)
 MTU = 1420
@@ -183,15 +183,15 @@ PrivateKey = PI_PRIVATE_KEY
 
 # Enable forwarding from WireGuard to the local network
 PostUp = sysctl -w net.ipv4.ip_forward=1
-PostUp = iptables -t nat -A POSTROUTING -s 10.0.0.0/24 -o eth0 -j MASQUERADE
+PostUp = iptables -t nat -A POSTROUTING -s 10.67.0.0/24 -o eth0 -j MASQUERADE
 
 # ── Access control ──────────────────────────────────────────────────
-# Android phone (10.0.0.3): ONLY allow access to NVR on port 8000
-PostUp = iptables -A FORWARD -i wg0 -o eth0 -s 10.0.0.3 -d 192.168.1.64 -p tcp --dport 8000 -j ACCEPT
-PostUp = iptables -A FORWARD -i wg0 -o eth0 -s 10.0.0.3 -j DROP
+# Android phone (10.67.0.3): ONLY allow access to NVR on port 8000
+PostUp = iptables -A FORWARD -i wg0 -o eth0 -s 10.67.0.3 -d 192.168.1.64 -p tcp --dport 8000 -j ACCEPT
+PostUp = iptables -A FORWARD -i wg0 -o eth0 -s 10.67.0.3 -j DROP
 
-# Windows service station (10.0.0.4): full LAN access (all devices, all ports)
-PostUp = iptables -A FORWARD -i wg0 -o eth0 -s 10.0.0.4 -j ACCEPT
+# Windows service station (10.67.0.4): full LAN access (all devices, all ports)
+PostUp = iptables -A FORWARD -i wg0 -o eth0 -s 10.67.0.4 -j ACCEPT
 
 # Default: allow other VPN peers to reach the LAN (for future peers)
 PostUp = iptables -A FORWARD -i wg0 -o eth0 -j ACCEPT
@@ -204,10 +204,10 @@ PostUp = ip6tables -A FORWARD -i wg0 -j DROP
 PostUp = ip6tables -A FORWARD -o wg0 -j DROP
 
 # ── Cleanup ─────────────────────────────────────────────────────────
-PostDown = iptables -t nat -D POSTROUTING -s 10.0.0.0/24 -o eth0 -j MASQUERADE
-PostDown = iptables -D FORWARD -i wg0 -o eth0 -s 10.0.0.3 -d 192.168.1.64 -p tcp --dport 8000 -j ACCEPT
-PostDown = iptables -D FORWARD -i wg0 -o eth0 -s 10.0.0.3 -j DROP
-PostDown = iptables -D FORWARD -i wg0 -o eth0 -s 10.0.0.4 -j ACCEPT
+PostDown = iptables -t nat -D POSTROUTING -s 10.67.0.0/24 -o eth0 -j MASQUERADE
+PostDown = iptables -D FORWARD -i wg0 -o eth0 -s 10.67.0.3 -d 192.168.1.64 -p tcp --dport 8000 -j ACCEPT
+PostDown = iptables -D FORWARD -i wg0 -o eth0 -s 10.67.0.3 -j DROP
+PostDown = iptables -D FORWARD -i wg0 -o eth0 -s 10.67.0.4 -j ACCEPT
 PostDown = iptables -D FORWARD -i wg0 -o eth0 -j ACCEPT
 PostDown = iptables -D FORWARD -i eth0 -o wg0 -m state --state RELATED,ESTABLISHED -j ACCEPT
 PostDown = ip6tables -D FORWARD -i wg0 -j DROP
@@ -218,7 +218,7 @@ PostDown = ip6tables -D FORWARD -o wg0 -j DROP
 PublicKey = SERVER_PUBLIC_KEY
 
 # Only the VPN subnet is routed through the tunnel
-AllowedIPs = 10.0.0.0/24
+AllowedIPs = 10.67.0.0/24
 
 # VPS public IP and WireGuard port
 Endpoint = VPS_PUBLIC_IP:51820
@@ -239,15 +239,15 @@ sudo chmod 600 /etc/wireguard/wg0.conf
 
 ### What the iptables rules do (plain English)
 
-- **MASQUERADE:** When traffic arrives from the VPN tunnel (10.0.0.x) and goes
+- **MASQUERADE:** When traffic arrives from the VPN tunnel (10.67.0.x) and goes
   out to the local network (eth0), the Pi rewrites the source address to its own
   (192.168.1.10). This way, the NVR sees the traffic as coming from the Pi and
   knows where to send the reply.
-- **Android restriction (10.0.0.3):** The phone can ONLY reach the NVR
+- **Android restriction (10.67.0.3):** The phone can ONLY reach the NVR
   (192.168.1.64) on TCP port 8000. All other traffic from the phone to the LAN
   is dropped. This follows the **principle of least privilege** — the phone only
   needs iVMS-4500 access, so that is all it gets.
-- **Windows full access (10.0.0.4):** The service station can reach any device
+- **Windows full access (10.67.0.4):** The service station can reach any device
   on any port — it needs full access for remote administration.
 - **Return traffic:** Only replies to connections initiated from the VPN side are
   allowed back through. Devices on the LAN cannot initiate connections into the
@@ -300,7 +300,7 @@ You should see the VPS listed as a peer with a recent handshake:
 ```
 peer: (VPS public key)
   endpoint: VPS_PUBLIC_IP:51820
-  allowed ips: 10.0.0.0/24
+  allowed ips: 10.67.0.0/24
   latest handshake: X seconds ago
   transfer: X.XX KiB received, X.XX KiB sent
 ```
@@ -309,14 +309,14 @@ Test connectivity through the tunnel:
 
 ```bash
 # Ping the VPS through WireGuard
-ping -c 3 10.0.0.1
+ping -c 3 10.67.0.1
 ```
 
 On the VPS, also verify:
 
 ```bash
 # Ping the Raspberry Pi through WireGuard
-ping -c 3 10.0.0.2
+ping -c 3 10.67.0.2
 
 # Ping the NVR through the tunnel (should work if forwarding is correct)
 ping -c 3 192.168.1.64

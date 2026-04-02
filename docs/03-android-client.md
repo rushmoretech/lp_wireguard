@@ -30,7 +30,7 @@ access the Hikvision NVR through the iVMS-4500 app.
 |---|---|
 | Name | `nvr-vpn` (or any name you like) |
 | Private key | Tap **Generate** — the app creates a key pair automatically |
-| Addresses | `10.0.0.3/24` |
+| Addresses | `10.67.0.3/24` |
 | DNS servers | `1.1.1.1` (or leave empty — only needed if you route all traffic) |
 
 > **Important:** After tapping Generate, the **public key** appears below the
@@ -45,12 +45,12 @@ Tap **Add Peer** and fill in:
 |---|---|
 | Public key | `SERVER_PUBLIC_KEY` (the VPS public key from Step 6 of the VPS guide) |
 | Endpoint | `VPS_PUBLIC_IP:51820` |
-| Allowed IPs | `10.0.0.0/24, 192.168.1.0/24` |
+| Allowed IPs | `10.67.0.0/24, 192.168.1.0/24` |
 | Persistent keepalive | `25` |
 
 > **What does AllowedIPs mean here?** It tells the phone which traffic should go
 > through the VPN tunnel:
-> - `10.0.0.0/24` — traffic to other VPN devices
+> - `10.67.0.0/24` — traffic to other VPN devices
 > - `192.168.1.0/24` — traffic to the client's local network (where the NVR is)
 >
 > All other traffic (web browsing, YouTube, etc.) goes through the phone's normal
@@ -89,7 +89,7 @@ sudo wg-quick down wg0 && sudo wg-quick up wg0
 Open a browser on the phone and go to:
 
 ```
-http://10.0.0.1
+http://10.67.0.1
 ```
 
 If the VPS has nothing running on port 80, you will get a connection refused
@@ -99,8 +99,8 @@ A timeout means the tunnel is not working.
 Better test — open a terminal app (like Termux) and run:
 
 ```
-ping 10.0.0.1
-ping 10.0.0.2
+ping 10.67.0.1
+ping 10.67.0.2
 ping 192.168.1.64
 ```
 
@@ -161,7 +161,7 @@ If the client wants, you can set the WireGuard tunnel to be "always on":
 2. Tap the gear icon next to **WireGuard**.
 3. Enable **Always-on VPN**.
 
-This keeps the VPN running at all times. Note that all traffic to `10.0.0.0/24`
+This keeps the VPN running at all times. Note that all traffic to `10.67.0.0/24`
 and `192.168.1.0/24` will always go through the tunnel, but since we used split
 tunneling, regular internet use is not affected.
 

@@ -20,14 +20,14 @@ We build a WireGuard VPN tunnel that bypasses Starlink's CGNAT:
 ┌─────────────────┐         ┌──────────────────┐         ┌─────────────────────────────┐
 │  Android Phone  │         │   Vultr VPS      │         │   Client Site               │
 │  (iVMS-4500)    │◄───────►│   WireGuard Hub  │◄───────►│   Raspberry Pi 4B           │
-│  10.0.0.3       │ tunnel  │   10.0.0.1       │ tunnel  │   10.0.0.2                  │
+│  10.67.0.3       │ tunnel  │   10.67.0.1       │ tunnel  │   10.67.0.2                  │
 └─────────────────┘         │                  │         │                             │
                             │                  │         │  wlan0 ─► Starlink (WiFi)   │
-┌─────────────────┐         │                  │         │  eth0  ─► Local Network      │
-│  Windows 10 PC  │◄───────►│                  │         │            192.168.1.0/24    │
-│  (Service Stn)  │ tunnel  │                  │         │               │              │
-│  10.0.0.4       │         │                  │         │           Hikvision NVR      │
-└─────────────────┘         └──────────────────┘         │           192.168.1.64:8000  │
+┌─────────────────┐         │                  │         │  eth0  ─► Local Network     │
+│  Windows 10 PC  │◄───────►│                  │         │            192.168.1.0/24   │
+│  (Service Stn)  │ tunnel  │                  │         │               │             │
+│  10.67.0.4       │         │                  │         │           Hikvision NVR     │
+└─────────────────┘         └──────────────────┘         │           192.168.1.64:8000 │
                                                          └─────────────────────────────┘
 ```
 

@@ -374,7 +374,7 @@ Paste the following content. You need to replace **two** placeholder values:
 ```ini
 [Interface]
 # VPS WireGuard address
-Address = 10.0.0.1/24
+Address = 10.67.0.1/24
 
 # WireGuard listen port
 ListenPort = 51820
@@ -390,7 +390,7 @@ PostUp = sysctl -w net.ipv4.ip_forward=1
 
 # NAT only VPN traffic (restrict source to WireGuard subnet)
 # *** Replace enp1s0 with YOUR interface name from Step 8 ***
-PostUp = iptables -t nat -A POSTROUTING -s 10.0.0.0/24 -o enp1s0 -j MASQUERADE
+PostUp = iptables -t nat -A POSTROUTING -s 10.67.0.0/24 -o enp1s0 -j MASQUERADE
 
 # Stateful forwarding: allow new+established from wg0, only established back
 PostUp = iptables -A FORWARD -i wg0 -o enp1s0 -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
@@ -404,7 +404,7 @@ PostUp = ip6tables -A FORWARD -i wg0 -j DROP
 PostUp = ip6tables -A FORWARD -o wg0 -j DROP
 
 # Clean up when the interface goes down
-PostDown = iptables -t nat -D POSTROUTING -s 10.0.0.0/24 -o enp1s0 -j MASQUERADE
+PostDown = iptables -t nat -D POSTROUTING -s 10.67.0.0/24 -o enp1s0 -j MASQUERADE
 PostDown = iptables -D FORWARD -i wg0 -o enp1s0 -m state --state NEW,RELATED,ESTABLISHED -j ACCEPT
 PostDown = iptables -D FORWARD -i enp1s0 -o wg0 -m state --state RELATED,ESTABLISHED -j ACCEPT
 PostDown = iptables -D FORWARD -i wg0 -o wg0 -j ACCEPT
@@ -416,8 +416,8 @@ PostDown = ip6tables -D FORWARD -o wg0 -j DROP
 # Replace with the Raspberry Pi's public key (generated in the Pi guide)
 PublicKey = RASPBERRY_PI_PUBLIC_KEY
 
-# The Pi gets 10.0.0.2 and also "owns" the 192.168.1.0/24 local network
-AllowedIPs = 10.0.0.2/32, 192.168.1.0/24
+# The Pi gets 10.67.0.2 and also "owns" the 192.168.1.0/24 local network
+AllowedIPs = 10.67.0.2/32, 192.168.1.0/24
 
 # Keep the tunnel alive (important because Pi is behind Starlink CGNAT)
 PersistentKeepalive = 25
@@ -428,7 +428,7 @@ PersistentKeepalive = 25
 PublicKey = ANDROID_PHONE_PUBLIC_KEY
 
 # The phone only gets its own VPN address
-AllowedIPs = 10.0.0.3/32
+AllowedIPs = 10.67.0.3/32
 
 # ─── Peer: Windows 10 Service Station ──────────────────────────────
 [Peer]
@@ -436,7 +436,7 @@ AllowedIPs = 10.0.0.3/32
 PublicKey = WINDOWS_PC_PUBLIC_KEY
 
 # The PC only gets its own VPN address
-AllowedIPs = 10.0.0.4/32
+AllowedIPs = 10.67.0.4/32
 ```
 
 > **Important:** The `AllowedIPs` for the Raspberry Pi includes `192.168.1.0/24`.
@@ -444,7 +444,7 @@ AllowedIPs = 10.0.0.4/32
 > should be sent through the tunnel to the Pi.
 >
 > **Security notes on the iptables rules above:**
-> - MASQUERADE is restricted to source `10.0.0.0/24` — only VPN traffic gets
+> - MASQUERADE is restricted to source `10.67.0.0/24` — only VPN traffic gets
 >   NATed, not everything on the server.
 > - FORWARD uses **stateful filtering** — new connections can only be initiated
 >   from the VPN side, not from the internet back into the VPN.

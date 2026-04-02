@@ -10,14 +10,14 @@ that allows remote access to a Hikvision NVR (192.168.1.64:8000) from an Android
 
 ## Architecture
 
-Four devices form the VPN (subnet 10.0.0.0/24):
+Four devices form the VPN (subnet 10.67.0.0/24):
 
-- **Vultr VPS (10.0.0.1)** — Debian 13 (Trixie), WireGuard hub with a public IP, relays traffic between peers
-- **Raspberry Pi 4B (10.0.0.2)** — on-site gateway: wlan0 connects to Starlink WiFi for
+- **Vultr VPS (10.67.0.1)** — Debian 13 (Trixie), WireGuard hub with a public IP, relays traffic between peers
+- **Raspberry Pi 4B (10.67.0.2)** — on-site gateway: wlan0 connects to Starlink WiFi for
   internet, eth0 (192.168.1.10) connects to the local LAN where the NVR sits. Forwards
   and NATs traffic between the WireGuard tunnel and the local network.
-- **Android phone (10.0.0.3)** — mobile client running WireGuard + iVMS-4500
-- **Windows 10 PC (10.0.0.4)** — service station with full access to 192.168.1.0/24 on all ports
+- **Android phone (10.67.0.3)** — mobile client running WireGuard + iVMS-4500
+- **Windows 10 PC (10.67.0.4)** — service station with full access to 192.168.1.0/24 on all ports
 
 ## Documentation Structure
 

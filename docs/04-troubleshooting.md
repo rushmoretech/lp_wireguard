@@ -5,7 +5,7 @@ Common problems and how to fix them.
 ## 1. WireGuard Tunnel Not Connecting
 
 **Symptoms:** `wg show` on the Pi or VPS shows no recent handshake. Pings to
-10.0.0.1 or 10.0.0.2 time out.
+10.67.0.1 or 10.67.0.2 time out.
 
 ### Check the basics
 
@@ -59,7 +59,7 @@ Make sure this matches the actual public IP shown in the Vultr dashboard.
 
 ## 2. Tunnel Works, but Cannot Reach the NVR (192.168.1.64)
 
-**Symptoms:** Pinging 10.0.0.1 and 10.0.0.2 works, but pinging 192.168.1.64
+**Symptoms:** Pinging 10.67.0.1 and 10.67.0.2 works, but pinging 192.168.1.64
 from the VPS or phone fails.
 
 ### Check IP forwarding on the Pi
@@ -82,7 +82,7 @@ sudo iptables -L FORWARD -n
 ```
 
 You should see:
-- A MASQUERADE rule on the nat table for the `10.0.0.0/24` source going out eth0
+- A MASQUERADE rule on the nat table for the `10.67.0.0/24` source going out eth0
 - FORWARD rules allowing traffic between wg0 and eth0
 
 If missing, restart WireGuard (which re-applies the PostUp rules):
@@ -102,7 +102,7 @@ sudo wg show
 Under the Pi's peer entry, you should see:
 
 ```
-allowed ips: 10.0.0.2/32, 192.168.1.0/24
+allowed ips: 10.67.0.2/32, 192.168.1.0/24
 ```
 
 If `192.168.1.0/24` is missing, edit `/etc/wireguard/wg0.conf` on the VPS and
@@ -181,8 +181,8 @@ example `192.168.2.0/24`. Then update:
 
 1. The NVR's IP (e.g., to `192.168.2.64`)
 2. The Pi's eth0 IP (e.g., to `192.168.2.10`)
-3. The VPS wg0.conf (AllowedIPs for the Pi: `10.0.0.2/32, 192.168.2.0/24`)
-4. The Android AllowedIPs (`10.0.0.0/24, 192.168.2.0/24`)
+3. The VPS wg0.conf (AllowedIPs for the Pi: `10.67.0.2/32, 192.168.2.0/24`)
+4. The Android AllowedIPs (`10.67.0.0/24, 192.168.2.0/24`)
 
 ### Solution B: Change the Starlink subnet
 

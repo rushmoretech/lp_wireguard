@@ -32,7 +32,7 @@ Raspberry Pi and the Android phone can reach.
                    │ (assigned) │ │ or any WiFi  │ │
                    │            │ │              │ │
                    │ wg0:       │ │ wg0:         │ │
-                   │ 10.0.0.1   │ │ 10.0.0.3    │ │
+                   │ 10.67.0.1   │ │ 10.67.0.3    │ │
                    └──┬─────▲──┘ └──────────────┘ │
                       │     │                      │
            WireGuard  │     │  WireGuard           │
@@ -42,7 +42,7 @@ Raspberry Pi and the Android phone can reach.
                       │     │    │ Windows 10 PC       │
                       │     │    │ (Service Station)   │
                       │     │    │                     │
-                      │     │    │ wg0: 10.0.0.4       │
+                      │     │    │ wg0: 10.67.0.4       │
                       │     │    │ Full access to LAN  │
                       │     │    └─────────────────────┘
                       │     │
@@ -52,7 +52,7 @@ Raspberry Pi and the Android phone can reach.
              │  wlan0: ──► Starlink (WiFi)          │
              │             (gets IP via DHCP)        │
              │                                      │
-             │  wg0:   10.0.0.2                     │
+             │  wg0:   10.67.0.2                     │
              │                                      │
              │  eth0:  192.168.1.10 ──► Local LAN   │
              └──────────────────┬───────────────────┘
@@ -75,12 +75,12 @@ Raspberry Pi and the Android phone can reach.
 | Device | Interface | IP Address | Purpose |
 |---|---|---|---|
 | Vultr VPS | enp1s0 (varies) | (public, assigned by Vultr) | Internet-facing |
-| Vultr VPS | wg0 | 10.0.0.1/24 | WireGuard hub |
+| Vultr VPS | wg0 | 10.67.0.1/24 | WireGuard hub |
 | Raspberry Pi | wlan0 | (DHCP from Starlink) | Internet via Starlink WiFi |
 | Raspberry Pi | eth0 | 192.168.1.10 | Connected to client's local network |
-| Raspberry Pi | wg0 | 10.0.0.2/24 | WireGuard tunnel to VPS |
-| Android Phone | wg0 | 10.0.0.3/24 | WireGuard tunnel to VPS |
-| Windows 10 PC | wg0 | 10.0.0.4/24 | WireGuard tunnel to VPS (service station) |
+| Raspberry Pi | wg0 | 10.67.0.2/24 | WireGuard tunnel to VPS |
+| Android Phone | wg0 | 10.67.0.3/24 | WireGuard tunnel to VPS |
+| Windows 10 PC | wg0 | 10.67.0.4/24 | WireGuard tunnel to VPS (service station) |
 | Hikvision NVR | eth | 192.168.1.64 | Local network, port 8000 |
 
 ## WireGuard Port
@@ -99,7 +99,7 @@ what happens step by step:
 3. The VPS receives the encrypted packet, decrypts it, and sees it is destined
    for **192.168.1.64** which belongs to the Raspberry Pi's network.
 4. The VPS forwards the decrypted packet through the WireGuard tunnel to the
-   **Raspberry Pi (10.0.0.2)**.
+   **Raspberry Pi (10.67.0.2)**.
 5. The Raspberry Pi receives the packet on its **wg0** interface. IP forwarding
    and NAT rules send it out through **eth0** to **192.168.1.64:8000**.
 6. The NVR responds, and the reply follows the exact same path in reverse.
@@ -116,7 +116,7 @@ NVR web interfaces, SSH into switches, configure routers, run network scans, etc
 
 | Subnet | Purpose | Used By |
 |---|---|---|
-| 10.0.0.0/24 | WireGuard VPN tunnel | VPS, Raspberry Pi, Android Phone, Windows PC |
+| 10.67.0.0/24 | WireGuard VPN tunnel | VPS, Raspberry Pi, Android Phone, Windows PC |
 | 192.168.1.0/24 | Client local network | Raspberry Pi (eth0), NVR, other local devices |
 
 ## Security Model
@@ -153,8 +153,8 @@ NVR web interfaces, SSH into switches, configure routers, run network scans, etc
 
 | Peer | WireGuard IP | LAN Access |
 |---|---|---|
-| Android Phone | 10.0.0.3 | **Restricted:** only 192.168.1.64 on TCP port 8000 |
-| Windows Service Station | 10.0.0.4 | **Full:** all devices on 192.168.1.0/24, all ports |
+| Android Phone | 10.67.0.3 | **Restricted:** only 192.168.1.64 on TCP port 8000 |
+| Windows Service Station | 10.67.0.4 | **Full:** all devices on 192.168.1.0/24, all ports |
 
 This enforcement happens on the Raspberry Pi via iptables rules. Even if a phone
 user tries to access another device on the LAN, the Pi will drop the traffic.

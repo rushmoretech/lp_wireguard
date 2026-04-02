@@ -48,7 +48,7 @@ keep that value):
 ```ini
 [Interface]
 # Windows PC WireGuard address
-Address = 10.0.0.4/24
+Address = 10.67.0.4/24
 
 # The private key was auto-generated — keep the one WireGuard created
 PrivateKey = YOUR_AUTO_GENERATED_PRIVATE_KEY
@@ -61,7 +61,7 @@ PrivateKey = YOUR_AUTO_GENERATED_PRIVATE_KEY
 PublicKey = SERVER_PUBLIC_KEY
 
 # Route VPN subnet + full client LAN through the tunnel
-AllowedIPs = 10.0.0.0/24, 192.168.1.0/24
+AllowedIPs = 10.67.0.0/24, 192.168.1.0/24
 
 # VPS public IP and WireGuard port
 Endpoint = VPS_PUBLIC_IP:51820
@@ -77,7 +77,7 @@ PersistentKeepalive = 25
 
 | Entry | What it does |
 |---|---|
-| `10.0.0.0/24` | Routes VPN traffic (to reach the VPS and Pi) through the tunnel |
+| `10.67.0.0/24` | Routes VPN traffic (to reach the VPS and Pi) through the tunnel |
 | `192.168.1.0/24` | Routes the entire client LAN through the tunnel — **all ports, all devices** |
 
 Everything else (web browsing, email, etc.) goes through the PC's normal internet
@@ -112,8 +112,8 @@ sudo wg-quick down wg0 && sudo wg-quick up wg0
 Open **Command Prompt** (search for `cmd` in the Start menu) and run:
 
 ```cmd
-ping 10.0.0.1
-ping 10.0.0.2
+ping 10.67.0.1
+ping 10.67.0.2
 ping 192.168.1.64
 ```
 
@@ -194,7 +194,7 @@ automatically:
 ## Step 8: Windows Firewall Note
 
 Windows Firewall may block incoming connections on the WireGuard interface. If
-you are trying to reach this PC from another VPN device (e.g., ping 10.0.0.4
+you are trying to reach this PC from another VPN device (e.g., ping 10.67.0.4
 from the VPS), you may need to allow it:
 
 1. Open **Windows Defender Firewall with Advanced Security** (search for it in
@@ -202,7 +202,7 @@ from the VPS), you may need to allow it:
 2. Click **Inbound Rules** > **New Rule**.
 3. Choose **Custom** > **All programs**.
 4. Protocol: **ICMPv4** (for ping) or **Any** (for all traffic).
-5. Remote IP: `10.0.0.0/24`.
+5. Remote IP: `10.67.0.0/24`.
 6. Action: **Allow**.
 7. Apply to **all profiles** (Domain, Private, Public).
 8. Name it `Allow WireGuard VPN` and click **Finish**.
@@ -222,11 +222,11 @@ At this point you have:
 
 ### Differences from the Android Phone Setup
 
-| Feature | Android Phone (10.0.0.3) | Windows Service Station (10.0.0.4) |
+| Feature | Android Phone (10.67.0.3) | Windows Service Station (10.67.0.4) |
 |---|---|---|
 | Primary use | View cameras via iVMS-4500 | Full remote network management |
 | LAN access enforced by Pi | **Restricted:** NVR port 8000 only | **Full:** all devices, all ports |
-| AllowedIPs (client side) | `10.0.0.0/24, 192.168.1.0/24` | `10.0.0.0/24, 192.168.1.0/24` |
+| AllowedIPs (client side) | `10.67.0.0/24, 192.168.1.0/24` | `10.67.0.0/24, 192.168.1.0/24` |
 | Typical tools | iVMS-4500 | iVMS-4200, browser, SSH, RDP, SADP Tool |
 
 > **Note:** Both devices have the same client-side `AllowedIPs`, but the
